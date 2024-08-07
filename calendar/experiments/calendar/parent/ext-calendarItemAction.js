@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
 ChromeUtils.defineModuleGetter(
   this,
   "ToolbarButtonAPI",
@@ -19,6 +18,13 @@ ChromeUtils.defineModuleGetter(
   "ExtensionSupport",
   "resource:///modules/ExtensionSupport.jsm",
 );
+
+
+var { ExtensionCommon } = ChromeUtils.import(
+  "resource://gre/modules/ExtensionCommon.jsm"
+);
+
+var { makeWidgetId } = ExtensionCommon;
 
 const calendarItemActionMap = new WeakMap();
 
@@ -130,7 +136,7 @@ this.calendarItemAction = class extends ToolbarButtonAPI {
     let window = event.target.ownerGlobal;
 
     switch (event.type) {
-      case "popupshowing":
+      case "popupshowing": {
         const menu = event.target;
         const trigger = menu.triggerNode;
         const node = window.document.getElementById(this.id);
@@ -148,10 +154,13 @@ this.calendarItemAction = class extends ToolbarButtonAPI {
           });
         }
         break;
+      }
     }
   }
 
-  static onUninstall(extensionId) {
+  onShutdown() {
+    // TODO browserAction uses static onUninstall, this doesn't work in an experiment.
+    let extensionId = this.extension.id;
     ExtensionSupport.unregisterWindowListener("ext-calendar-itemAction-" + extensionId);
 
     let widgetId = makeWidgetId(extensionId);
